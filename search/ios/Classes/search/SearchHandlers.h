@@ -42,3 +42,6 @@
 
 @interface SearchBusStation : NSObject <SearchMethodHandler, AMapSearchDelegate>
 @end
+
+@interface RequestInputTips : NSObject <SearchMethodHandler, AMapSearchDelegate>
+@end

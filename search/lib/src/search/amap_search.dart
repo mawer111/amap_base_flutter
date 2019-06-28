@@ -13,6 +13,7 @@ import 'package:amap_base_search/src/search/model_ios/bus_station_result.ios.dar
 import 'package:flutter/services.dart';
 
 import 'model/walk_route_result.dart';
+import 'model/input_tip_result.dart';
 
 class AMapSearch {
   static AMapSearch _instance;
@@ -197,6 +198,26 @@ class AMapSearch {
           } else {
             return null;
           }
+        });
+  }
+
+  Future<List<InputTipResult>> requestInputTips(
+      String keywords, String city) async {
+    return await _searchChannel
+        .invokeMethod("search#inputTips", {'city': city, 'keywords': keywords})
+        .then((result) => result as String)
+        .then((str) {
+          if (Platform.isIOS) {
+            Map<String, dynamic> map = json.decode(str);
+            if (map['count'] > 0) {
+              List<dynamic> tips = map['tips'];
+              return tips.map((e) => InputTipResult.fromJson(e)).toList();
+            }
+          } else if (Platform.isAndroid) {
+            List<dynamic> list = json.decode(str);
+            return list.map((e) => InputTipResult.fromJson(e)).toList();
+          }
+          return new List<InputTipResult>();
         });
   }
 }

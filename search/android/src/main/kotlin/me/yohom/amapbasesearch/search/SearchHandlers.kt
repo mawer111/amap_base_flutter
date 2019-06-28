@@ -5,6 +5,8 @@ import com.amap.api.services.busline.BusStationSearch
 import com.amap.api.services.core.AMapException
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.geocoder.*
+import com.amap.api.services.help.Inputtips
+import com.amap.api.services.help.InputtipsQuery
 import com.amap.api.services.poisearch.PoiResult
 import com.amap.api.services.poisearch.PoiSearch
 import com.amap.api.services.route.*
@@ -384,4 +386,25 @@ object SearchBusStation : SearchMethodHandler {
                     searchBusStationAsyn()
                 }
     }
+}
+
+object RequestInputTipsHandler : SearchMethodHandler {
+
+    override fun onMethodCall(methodcall : MethodCall, methodResult: MethodChannel.Result){
+        val city = methodcall.argument<String>("city") ?: ""
+        val keyText = methodcall.argument<String>("keywords") ?:""
+        val tips = Inputtips(AMapBaseSearchPlugin.registrar.context(),InputtipsQuery(keyText,city))
+        tips.setInputtipsListener{
+            list,code ->
+            if(code == 1000){
+                methodResult?.success(list.toAccessorJson())
+            } else {
+                methodResult?.error("请求输入提示失败 code ==> $code",null,null)
+            }
+        }
+
+        tips.requestInputtipsAsyn()
+    }
+
+
 }

@@ -617,3 +617,61 @@
 }
 
 @end
+
+@implementation RequestInputTips {
+ AMapSearchAPI *_search;
+  FlutterResult _result;
+}
+- (instancetype)init {
+  self = [super init];
+  if (self) {
+    // 搜索api回调设置
+    _search = [[AMapSearchAPI alloc] init];
+    _search.delegate = self;
+  }
+
+  return self;
+}
+
+- (void)onMethodCall:(FlutterMethodCall *)call :(FlutterResult)result {
+  _result = result;
+
+  NSDictionary *paramDic = call.arguments;
+
+  NSString *keywords = (NSString *) paramDic[@"keywords"];
+  NSString *city = (NSString *) paramDic[@"city"];
+
+  NSLog(@"方法map#requestInputTips ios端参数: keywords -> %@, city -> %@", keywords, city);
+
+  AMapInputTipsSearchRequest *tips = [[AMapInputTipsSearchRequest alloc] init];
+  tips.keywords = keywords;
+  tips.city     = city;
+  //   tips.cityLimit = YES; 是否限制城市
+
+  [_search AMapInputTipsSearch:tips];
+}
+
+/* 输入提示回调. */
+- (void)onInputTipsSearchDone:(AMapInputTipsSearchRequest *)request response:(AMapInputTipsSearchResponse *)response
+{
+      if (response.count == 0) {
+        return _result([FlutterError errorWithCode:@"没有搜索到结果"
+                                           message:@"没有搜索到结果"
+                                           details:@"没有搜索到结果"]);
+      }
+
+    //解析response获取提示词，具体解析见 Demo
+    _result([response mj_JSONString]);
+}
+
+/// 搜索失败回调
+- (void)AMapSearchRequest:(id)request didFailWithError:(NSError *)error {
+  _result([FlutterError errorWithCode:[NSString stringWithFormat:@"%d", error.code]
+                              message:[Misc toAMapErrorDesc:error.code]
+                              details:nil]);
+}
+
+
+
+
+@end
